@@ -78,9 +78,9 @@ urlinfo_t *parse_url(char *url)
   urlinfo->port = port;
   urlinfo->path = path;
 
-  printf("hostname: %s\n", hostname);
-  printf("port: %s\n", port);
-  printf("path: %s\n", path);
+  /* printf("hostname: %s\n", hostname); */
+  /* printf("port: %s\n", port); */
+  /* printf("path: %s\n", path); */
 
   return urlinfo;
 }
@@ -111,14 +111,40 @@ int send_request(int fd, char *hostname, char *port, char *path)
   return 0;
 }
 
+char *get_body(char *buffer) {
+  /* printf("header:\n%s\n", buffer); */
+  char *body; 
+  if (strstr(buffer, "\r\n\r\n")) {
+    body = (strstr(buffer, "\r\n\r\n"));
+  } else if (strstr(buffer, "\n\n")) {
+    body = (strstr(buffer, "\n\n"));
+  }
+  else body = buffer;
+  /* printf("body:\n%s\n", body); */
+  /* printf("before body:\n%s", (body - 1)); */
+  *body = '\0';
+  body++;
+  return body;
+}
+
 int main(int argc, char *argv[])
 {  
   int sockfd, numbytes;  
   char buf[BUFSIZE];
+  int print_header = 0;
 
-  if (argc != 2) {
-    fprintf(stderr,"usage: client HOSTNAME:PORT/PATH\n");
+  if (argc < 2 || argc > 3) {
+    fprintf(stderr,"usage: client HOSTNAME:PORT/PATH [-h]\n");
     exit(1);
+  }
+
+  if (argc == 3 && strcmp(argv[2], "-h") != 0) {
+    fprintf(stderr, "unkown flag: %s\n", argv[2]);
+    exit(1);
+  }
+
+  if (argc == 3 && strcmp(argv[2], "-h") == 0) {
+    print_header = 1;
   }
 
   urlinfo_t *urlinfo = parse_url(argv[1]);
@@ -126,9 +152,15 @@ int main(int argc, char *argv[])
   /* sockfd = get_socket("localhost", "3495"); */
   send_request(sockfd, urlinfo->hostname, urlinfo->port, urlinfo->path);
   while ((numbytes = recv(sockfd, buf, BUFSIZE - 1, 0)) > 0) {
+  }
+  /* printf("%s\n", buf); */
+  char *body = get_body(buf);
+  if (print_header) {
     printf("%s\n", buf);
   }
+  printf("%s", body);
   
+  /* free(body); */
   free(urlinfo);
   close(sockfd);
 
@@ -139,10 +171,6 @@ int main(int argc, char *argv[])
     4. Call `recv` in a loop until there is no more data to receive from the server. Print the received response to stdout.
     5. Clean up any allocated memory and open file descriptors.
   */
-
-  ///////////////////
-  // IMPLEMENT ME! //
-  ///////////////////
 
   return 0;
 }
