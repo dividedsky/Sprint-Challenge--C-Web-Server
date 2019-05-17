@@ -34,9 +34,6 @@ urlinfo_t *parse_url(char *url)
 
   urlinfo_t *urlinfo = malloc(sizeof(urlinfo_t));
 
-  // couldn't we just do this?
-  /* sscanf(url, "%s:%s/%s", hostname, port, path); */
-
   /*
     We can parse the input URL by doing the following:
 
@@ -56,6 +53,7 @@ urlinfo_t *parse_url(char *url)
     hostname += strlen("http://");
   } 
   p = strchr(hostname, '/');
+
   // in case there's no trailing "/", make it the default path
   if (p == NULL) {
     path = "/";
@@ -66,6 +64,7 @@ urlinfo_t *parse_url(char *url)
   }
 
   p = strchr(hostname, ':');
+
   // add default port if no ":" found
   if (p == NULL) {
     port = "80";
@@ -77,10 +76,6 @@ urlinfo_t *parse_url(char *url)
   urlinfo->hostname = hostname;
   urlinfo->port = port;
   urlinfo->path = path;
-
-  /* printf("hostname: %s\n", hostname); */
-  /* printf("port: %s\n", port); */
-  /* printf("path: %s\n", path); */
 
   return urlinfo;
 }
@@ -112,16 +107,15 @@ int send_request(int fd, char *hostname, char *port, char *path)
 }
 
 char *get_body(char *buffer) {
-  /* printf("header:\n%s\n", buffer); */
   char *body; 
+  // find end of header/start of body
   if (strstr(buffer, "\r\n\r\n")) {
     body = (strstr(buffer, "\r\n\r\n"));
   } else if (strstr(buffer, "\n\n")) {
     body = (strstr(buffer, "\n\n"));
   }
   else body = buffer;
-  /* printf("body:\n%s\n", body); */
-  /* printf("before body:\n%s", (body - 1)); */
+  // we're at the end of the header--add null terminator and advance body pointer
   *body = '\0';
   body++;
   return body;
@@ -138,39 +132,36 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  // check for unknown flags
   if (argc == 3 && strcmp(argv[2], "-h") != 0) {
     fprintf(stderr, "unkown flag: %s\n", argv[2]);
     exit(1);
   }
 
+  // check for -h flag
   if (argc == 3 && strcmp(argv[2], "-h") == 0) {
     print_header = 1;
   }
 
   urlinfo_t *urlinfo = parse_url(argv[1]);
   sockfd = get_socket(urlinfo->hostname, urlinfo->port);
-  /* sockfd = get_socket("localhost", "3495"); */
   send_request(sockfd, urlinfo->hostname, urlinfo->port, urlinfo->path);
+
+  // read response into buf
   while ((numbytes = recv(sockfd, buf, BUFSIZE - 1, 0)) > 0) {
   }
-  /* printf("%s\n", buf); */
+  
+  // split header and body
   char *body = get_body(buf);
+
   if (print_header) {
     printf("%s\n", buf);
   }
+
   printf("%s", body);
   
-  /* free(body); */
   free(urlinfo);
   close(sockfd);
-
-  /*
-    1. Parse the input URL
-    2. Initialize a socket by calling the `get_socket` function from lib.c
-    3. Call `send_request` to construct the request and send it
-    4. Call `recv` in a loop until there is no more data to receive from the server. Print the received response to stdout.
-    5. Clean up any allocated memory and open file descriptors.
-  */
 
   return 0;
 }
