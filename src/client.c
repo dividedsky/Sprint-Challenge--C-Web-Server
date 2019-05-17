@@ -53,18 +53,25 @@ urlinfo_t *parse_url(char *url)
     hostname += strlen("https://");
   } 
   if (strstr(hostname, "http://")) {
-    hostname += strlen("https://");
+    hostname += strlen("http://");
   } 
   p = strchr(hostname, '/');
-  
-  path = p + 1;
-  *p = '\0';
+  // in case there's no trailing "/", make it the default path
+  if (p == NULL) {
+    path = "/";
+  }
+  else  {
+    path = p + 1;
+    *p = '\0';
+  }
+
   p = strchr(hostname, ':');
+  // add default port if no ":" found
   if (p == NULL) {
     port = "80";
   } else {
-  port = p + 1;
-  *p = '\0';
+    port = p + 1;
+    *p = '\0';
   }
 
   urlinfo->hostname = hostname;
