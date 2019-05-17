@@ -51,8 +51,12 @@ urlinfo_t *parse_url(char *url)
   path = p + 1;
   *p = '\0';
   p = strchr(hostname, ':');
+  if (p == NULL) {
+    port = "80";
+  } else {
   port = p + 1;
   *p = '\0';
+  }
 
   urlinfo->hostname = hostname;
   urlinfo->port = port;
@@ -85,7 +89,7 @@ int send_request(int fd, char *hostname, char *port, char *path)
       "Connection: close\n\n",
       path, hostname, port
       );
-  printf("request:\n%s", request);
+  /* printf("request:\n%s", request); */
 
   rv = send(fd, request, request_length, 0);
   return 0;
@@ -109,6 +113,8 @@ int main(int argc, char *argv[])
     printf("%s\n", buf);
   }
   
+  free(urlinfo);
+  close(sockfd);
 
   /*
     1. Parse the input URL
