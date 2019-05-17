@@ -58,10 +58,6 @@ urlinfo_t *parse_url(char *url)
   urlinfo->port = port;
   urlinfo->path = path;
 
-  ///////////////////
-  // IMPLEMENT ME! //
-  ///////////////////
-
   printf("hostname: %s\n", hostname);
   printf("port: %s\n", port);
   printf("path: %s\n", path);
@@ -84,11 +80,14 @@ int send_request(int fd, char *hostname, char *port, char *path)
   const int max_request_size = 16384;
   char request[max_request_size];
   int rv;
+  int request_length = sprintf(request, "GET /%s HTTP/1.1\n"
+      "Host: %s:%s\n"
+      "Connection: close\n",
+      path, hostname, port
+      );
+  printf("request:\n%s", request);
 
-  ///////////////////
-  // IMPLEMENT ME! //
-  ///////////////////
-
+  rv = send(fd, request, request_length, 0);
   return 0;
 }
 
@@ -102,7 +101,11 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  parse_url(argv[1]);
+  urlinfo_t *urlinfo = parse_url(argv[1]);
+  sockfd = get_socket(urlinfo->hostname, urlinfo->port);
+  send_request(sockfd, urlinfo->hostname, urlinfo->port, urlinfo->path);
+  printf("sockfd is %d\n", sockfd);
+  
 
   /*
     1. Parse the input URL
