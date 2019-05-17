@@ -35,7 +35,7 @@ urlinfo_t *parse_url(char *url)
   urlinfo_t *urlinfo = malloc(sizeof(urlinfo_t));
 
   // couldn't we just do this?
-  sscanf(url, "%s:%s/%s", hostname, port, path);
+  /* sscanf(url, "%s:%s/%s", hostname, port, path); */
 
   /*
     We can parse the input URL by doing the following:
@@ -47,7 +47,16 @@ urlinfo_t *parse_url(char *url)
     5. Set the port pointer to 1 character after the spot returned by strchr.
     6. Overwrite the colon with a '\0' so that we are just left with the hostname.
   */
-  char *p = strchr(hostname, '/');
+  char *p;
+  // in case of leading prefix, move the hostname pointer up
+  if (strstr(hostname, "https://")) {
+    hostname += strlen("https://");
+  } 
+  if (strstr(hostname, "http://")) {
+    hostname += strlen("https://");
+  } 
+  p = strchr(hostname, '/');
+  
   path = p + 1;
   *p = '\0';
   p = strchr(hostname, ':');
@@ -62,9 +71,9 @@ urlinfo_t *parse_url(char *url)
   urlinfo->port = port;
   urlinfo->path = path;
 
-  /* printf("hostname: %s\n", hostname); */
-  /* printf("port: %s\n", port); */
-  /* printf("path: %s\n", path); */
+  printf("hostname: %s\n", hostname);
+  printf("port: %s\n", port);
+  printf("path: %s\n", path);
 
   return urlinfo;
 }
