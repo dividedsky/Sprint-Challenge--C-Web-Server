@@ -103,8 +103,11 @@ int main(int argc, char *argv[])
 
   urlinfo_t *urlinfo = parse_url(argv[1]);
   sockfd = get_socket(urlinfo->hostname, urlinfo->port);
+  /* sockfd = get_socket("localhost", "3495"); */
   send_request(sockfd, urlinfo->hostname, urlinfo->port, urlinfo->path);
-  printf("sockfd is %d\n", sockfd);
+  while ((numbytes = recv(sockfd, buf, BUFSIZE - 1, 0)) > 0) {
+    printf("%s\n", buf);
+  }
   
 
   /*
