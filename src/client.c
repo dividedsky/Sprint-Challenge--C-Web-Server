@@ -34,6 +34,9 @@ urlinfo_t *parse_url(char *url)
 
   urlinfo_t *urlinfo = malloc(sizeof(urlinfo_t));
 
+  // couldn't we just do this?
+  sscanf(url, "%s:%s/%s", hostname, port, path);
+
   /*
     We can parse the input URL by doing the following:
 
@@ -44,10 +47,24 @@ urlinfo_t *parse_url(char *url)
     5. Set the port pointer to 1 character after the spot returned by strchr.
     6. Overwrite the colon with a '\0' so that we are just left with the hostname.
   */
+  char *p = strchr(hostname, '/');
+  path = p + 1;
+  *p = '\0';
+  p = strchr(hostname, ':');
+  port = p + 1;
+  *p = '\0';
+
+  urlinfo->hostname = hostname;
+  urlinfo->port = port;
+  urlinfo->path = path;
 
   ///////////////////
   // IMPLEMENT ME! //
   ///////////////////
+
+  printf("hostname: %s\n", hostname);
+  printf("port: %s\n", port);
+  printf("path: %s\n", path);
 
   return urlinfo;
 }
@@ -84,6 +101,8 @@ int main(int argc, char *argv[])
     fprintf(stderr,"usage: client HOSTNAME:PORT/PATH\n");
     exit(1);
   }
+
+  parse_url(argv[1]);
 
   /*
     1. Parse the input URL
